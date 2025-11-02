@@ -2,6 +2,7 @@ import * as cdk from "aws-cdk-lib";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as cognito from "aws-cdk-lib/aws-cognito";
+import * as agentcore from 'aws-cdk-lib/aws-bedrockagentcore';
 import { Construct } from "constructs";
 import * as path from "path";
 import * as dotenv from "dotenv";
@@ -12,7 +13,9 @@ export class LambdaOpenaiWebSearchStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    const resourceServerId = "sample-agentcore-gateway-id";
+    const resourceServerId = "sample-agentcore-gateway-id6";
+    const gatewayName = "SampleAgentCoreGateway6";
+    const gatewayTargetName = "SampleAgentCoreGatewayTarget6";
 
     // Lambda Layer for dependencies
     const layer = new lambda.LayerVersion(this, "DependenciesLayer", {
@@ -157,6 +160,67 @@ export class LambdaOpenaiWebSearchStack extends cdk.Stack {
     userPoolClient.node.addDependency(resourceServer);
 
     // ========================================
+    // AgentCore Gateway
+    // ========================================
+    const gateway = new agentcore.CfnGateway(this, 'Gateway', {
+      name: gatewayName,
+      description: 'Gateway for OpenAI Web Search Lambda',
+      protocolType: 'MCP',
+      protocolConfiguration: {
+        mcp: {
+          searchType: 'SEMANTIC',
+        },
+      },
+      authorizerType: 'CUSTOM_JWT', // Inbound authentication using Cognito JWT
+      authorizerConfiguration: {
+        customJwtAuthorizer: {
+          discoveryUrl: `https://cognito-idp.${this.region}.amazonaws.com/${userPool.userPoolId}/.well-known/openid-configuration`,
+          allowedClients: [userPoolClient.userPoolClientId],
+        },
+      },
+      roleArn: agentCoreRole.roleArn,
+      exceptionLevel: 'DEBUG',
+    });
+
+    // Create target
+    new agentcore.CfnGatewayTarget(this, 'AccountingTarget', {
+      name: gatewayTargetName,
+      description: 'Lambda Target',
+      gatewayIdentifier: gateway.attrGatewayIdentifier,
+      credentialProviderConfigurations: [
+        {
+          credentialProviderType: 'GATEWAY_IAM_ROLE', // Outbound authentication using IAM Role
+        },
+      ],
+      targetConfiguration: {
+        mcp: {
+          lambda: {
+            lambdaArn: openAIFunction.functionArn,
+            toolSchema: {
+              // https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-properties-bedrockagentcore-gatewaytarget-tooldefinition.html
+              inlinePayload: [
+                {
+                  name: "openai_deep_research",
+                  description: "An AI agent with advanced web search capabilities. Useful for finding the latest information, troubleshooting errors, and discussing ideas or design challenges. Supports natural language queries.",
+                  inputSchema: {
+                    type: 'object',
+                    properties: {
+                      question: {
+                        type: 'string',
+                        description: 'Question text to send to OpenAI o3. It supports natural language queries. Write in Japanese. Be direct and specific about your requirements. Avoid chain-of-thought instructions like `think step by step` as o3 handles reasoning internally.',
+                      },
+                    },
+                    required: ['question'],
+                  },
+                },
+              ],
+            },
+          },
+        },
+      },
+    });
+
+    // ========================================
     // CloudFormation Outputs
     // ========================================
     new cdk.CfnOutput(this, "LambdaFunctionArn", {
@@ -202,6 +266,10 @@ export class LambdaOpenaiWebSearchStack extends cdk.Stack {
     new cdk.CfnOutput(this, "ResourceServerIdentifier", {
       value: resourceServer.userPoolResourceServerId,
       description: "Resource Server Identifier",
+    });
+
+    new cdk.CfnOutput(this, 'GatewayUrl', {
+      value: gateway.attrGatewayUrl,
     });
   }
 }
