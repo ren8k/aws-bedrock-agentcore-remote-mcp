@@ -32,7 +32,7 @@ def create_oauth2_provider(
 
 
 def main():
-    load_dotenv()
+    load_dotenv(override=True)
     create_oauth2_provider(
         name=os.getenv("OAUTH2_PROVIDER_NAME", ""),
         client_id=os.getenv("OAUTH2_CLIENT_ID", ""),
