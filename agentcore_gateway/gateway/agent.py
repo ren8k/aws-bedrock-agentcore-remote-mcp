@@ -1,4 +1,4 @@
-identity_arn = "arn:aws:bedrock-agentcore:us-east-1:869603330160:token-vault/default/oauth2credentialprovider/cognito-oauth-client-tm29k"
+import asyncio
 
 from bedrock_agentcore.identity.auth import requires_access_token
 from mcp import ClientSession
@@ -6,10 +6,10 @@ from mcp.client.streamable_http import streamablehttp_client
 
 
 @requires_access_token(
-    provider_name="cognito-oauth-client-tm29k",  # AgentCore IdentityのName
+    provider_name="test-20251103",  # AgentCore IdentityのName
     scopes=[
-        "sample-agentcore-gateway-id6/gateway:read",
-        "sample-agentcore-gateway-id6/gateway:write",
+        "agentcore-gateway-m2m-server/gateway:read",
+        "agentcore-gateway-m2m-server/gateway:write",
     ],
     auth_flow="M2M",
 )
@@ -22,7 +22,7 @@ async def need_api_key(*, access_token: str):
 async def main():
     await need_api_key(access_token="")
 
-    mcp_url = "https://sampleagentcoregateway6-kfgkc46ysx.gateway.bedrock-agentcore.us-east-1.amazonaws.com/mcp"
+    mcp_url = "https://agentcoregateway-chstack7-rlzpkmo6gm.gateway.bedrock-agentcore.us-east-1.amazonaws.com/mcp"
     headers = {"Authorization": f"Bearer {ACCESS_TOKEN}"}
 
     async with streamablehttp_client(
@@ -39,6 +39,4 @@ async def main():
 
 
 if __name__ == "__main__":
-    import asyncio
-
     asyncio.run(main())
