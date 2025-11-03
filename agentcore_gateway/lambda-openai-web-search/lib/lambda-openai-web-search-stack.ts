@@ -239,5 +239,16 @@ export class LambdaOpenaiWebSearchStack extends cdk.Stack {
       value: gateway.attrGatewayUrl,
       description: 'URL of the AgentCore Gateway',
     });
+
+    // Custom Scopes Output
+    new cdk.CfnOutput(this, "CustomScopeRead", {
+      value: `${resourceServer.userPoolResourceServerId}/gateway:read`,
+      description: "Custom scope for read access",
+    });
+
+    new cdk.CfnOutput(this, "CustomScopeWrite", {
+      value: `${resourceServer.userPoolResourceServerId}/gateway:write`,
+      description: "Custom scope for write access",
+    });
   }
 }
