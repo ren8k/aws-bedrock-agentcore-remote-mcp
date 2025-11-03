@@ -12,10 +12,8 @@ dotenv.config();
 export class LambdaOpenaiWebSearchStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
-
-    const resourceServerId = "sample-agentcore-gateway-id6";
-    const gatewayName = "SampleAgentCoreGateway6";
-    const gatewayTargetName = "SampleAgentCoreGatewayTarget6";
+    const gatewayName = `AgentCoreGateway-${cdk.Names.uniqueId(this).toLowerCase().slice(-8)}`;
+    const gatewayTargetName = "AgentCoreGatewayTarget";
 
     // Lambda Layer for dependencies
     const layer = new lambda.LayerVersion(this, "DependenciesLayer", {
@@ -91,10 +89,9 @@ export class LambdaOpenaiWebSearchStack extends cdk.Stack {
     });
 
     // Create User Pool Domain
-    const uniqueId = cdk.Names.uniqueId(this).toLowerCase().slice(-8);
     const userPoolDomain = userPool.addDomain("AgentCoreUserPoolDomain", {
       cognitoDomain: {
-        domainPrefix: `agentcore-${this.account}-${uniqueId}`,
+        domainPrefix: `agentcore-${this.account}-${cdk.Names.uniqueId(this).toLowerCase().slice(-8)}`,
       },
     });
 
@@ -106,7 +103,7 @@ export class LambdaOpenaiWebSearchStack extends cdk.Stack {
       "AgentCoreResourceServer",
       {
         userPool: userPool,
-        identifier: resourceServerId,
+        identifier: `agentcore-gateway-m2m-server`,
         scopes: [
           {
             scopeName: "gateway:read",
@@ -223,29 +220,14 @@ export class LambdaOpenaiWebSearchStack extends cdk.Stack {
     // ========================================
     // CloudFormation Outputs
     // ========================================
-    new cdk.CfnOutput(this, "LambdaFunctionArn", {
-      value: openAIFunction.functionArn,
-      description: "ARN of the OpenAI Web Search Lambda function",
-    });
-
-    new cdk.CfnOutput(this, "AgentCoreRoleArn", {
-      value: agentCoreRole.roleArn,
-      description: "ARN of the AgentCore Gateway IAM role",
-    });
-
-    new cdk.CfnOutput(this, "UserPoolId", {
-      value: userPool.userPoolId,
-      description: "Cognito User Pool ID",
-    });
-
-    new cdk.CfnOutput(this, "UserPoolArn", {
-      value: userPool.userPoolArn,
-      description: "Cognito User Pool ARN",
-    });
-
     new cdk.CfnOutput(this, "UserPoolClientId", {
       value: userPoolClient.userPoolClientId,
       description: "Cognito User Pool Client ID",
+    });
+
+    // This secret should not be exposed in production environments
+    new cdk.CfnOutput(this, 'UserPoolClientSecret', {
+      value: userPoolClient.userPoolClientSecret.unsafeUnwrap()
     });
 
     new cdk.CfnOutput(this, "CognitoDiscoveryUrl", {
@@ -253,23 +235,9 @@ export class LambdaOpenaiWebSearchStack extends cdk.Stack {
       description: "Cognito OpenID Discovery URL",
     });
 
-    new cdk.CfnOutput(this, "CognitoDomainUrl", {
-      value: userPoolDomain.baseUrl(),
-      description: "Cognito User Pool Domain URL",
-    });
-
-    new cdk.CfnOutput(this, "TokenEndpoint", {
-      value: `${userPoolDomain.baseUrl()}/oauth2/token`,
-      description: "Cognito OAuth2 Token Endpoint",
-    });
-
-    new cdk.CfnOutput(this, "ResourceServerIdentifier", {
-      value: resourceServer.userPoolResourceServerId,
-      description: "Resource Server Identifier",
-    });
-
     new cdk.CfnOutput(this, 'GatewayUrl', {
       value: gateway.attrGatewayUrl,
+      description: 'URL of the AgentCore Gateway',
     });
   }
 }
