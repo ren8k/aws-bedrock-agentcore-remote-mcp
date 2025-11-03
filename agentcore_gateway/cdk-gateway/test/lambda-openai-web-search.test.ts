@@ -1,9 +1,9 @@
 // import * as cdk from 'aws-cdk-lib';
 // import { Template } from 'aws-cdk-lib/assertions';
-// import * as LambdaOpenaiWebSearch from '../lib/lambda-openai-web-search-stack';
+// import * as LambdaOpenaiWebSearch from '../lib/agentcore-gateway-mcp-stack';
 
 // example test. To run these tests, uncomment this file along with the
-// example resource in lib/lambda-openai-web-search-stack.ts
+// example resource in lib/agentcore-gateway-mcp-stack.ts
 test('SQS Queue Created', () => {
 //   const app = new cdk.App();
 //     // WHEN

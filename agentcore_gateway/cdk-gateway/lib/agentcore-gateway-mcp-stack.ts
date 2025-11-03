@@ -9,7 +9,7 @@ import * as dotenv from "dotenv";
 
 dotenv.config();
 
-export class LambdaOpenaiWebSearchStack extends cdk.Stack {
+export class AgentCoreGatewayLambdaMCPStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
     const gatewayName = `AgentCoreGateway-${cdk.Names.uniqueId(this).toLowerCase().slice(-8)}`;
