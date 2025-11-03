@@ -1,8 +1,8 @@
 {
-  "name": "lambda-openai-web-search",
+  "name": "agentcore-gateway-mcp",
   "version": "0.1.0",
   "bin": {
-    "lambda-openai-web-search": "bin/lambda-openai-web-search.js"
+    "agentcore-gateway-mcp": "bin/agentcore-gateway-mcp.js"
   },
   "scripts": {
     "build": "tsc",

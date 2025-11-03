@@ -1,5 +1,5 @@
 {
-  "app": "npx ts-node --prefer-ts-exts bin/lambda-openai-web-search.ts",
+  "app": "npx ts-node --prefer-ts-exts bin/agentcore-gateway-mcp.ts",
   "watch": {
     "include": [
       "**"

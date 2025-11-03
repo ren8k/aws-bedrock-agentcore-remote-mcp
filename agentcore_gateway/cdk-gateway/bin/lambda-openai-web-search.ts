@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import * as cdk from 'aws-cdk-lib';
-import { LambdaOpenaiWebSearchStack } from '../lib/lambda-openai-web-search-stack';
+import { LambdaOpenaiWebSearchStack } from '../lib/agentcore-gateway-mcp-stack';
 
 const app = new cdk.App();
 new LambdaOpenaiWebSearchStack(app, 'LambdaOpenaiWebSearchStack8', {
