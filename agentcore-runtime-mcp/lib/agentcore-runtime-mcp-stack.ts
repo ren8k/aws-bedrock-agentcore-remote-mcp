@@ -1,11 +1,13 @@
-import * as cdk from 'aws-cdk-lib/core';
-import { Construct } from 'constructs';
+import * as cdk from "aws-cdk-lib/core";
+import { Construct } from "constructs";
 import * as cognito from "aws-cdk-lib/aws-cognito";
-import { Platform } from 'aws-cdk-lib/aws-ecr-assets';
-import { ContainerImageBuild } from 'deploy-time-build';
+import { Platform } from "aws-cdk-lib/aws-ecr-assets";
+import { ContainerImageBuild } from "deploy-time-build";
 import * as agentcore from "@aws-cdk/aws-bedrock-agentcore-alpha";
 import * as path from "path";
+import * as dotenv from "dotenv";
 
+dotenv.config();
 
 export class AgentcoreRuntimeMcpStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -26,7 +28,9 @@ export class AgentcoreRuntimeMcpStack extends cdk.Stack {
     // Create User Pool Domain
     const userPoolDomain = userPool.addDomain("AgentCoreUserPoolDomain", {
       cognitoDomain: {
-        domainPrefix: `agentcore-${this.account}-${cdk.Names.uniqueId(this).toLowerCase().slice(-10)}`,
+        domainPrefix: `agentcore-${this.account}-${cdk.Names.uniqueId(this)
+          .toLowerCase()
+          .slice(-10)}`,
       },
     });
     // BUG: −８にするとダメ。
@@ -89,14 +93,11 @@ export class AgentcoreRuntimeMcpStack extends cdk.Stack {
       }
     );
 
-    // Ensure resource server is created before the client
-    userPoolClient.node.addDependency(resourceServer);
-
     // ========================================
     // ECR
     // ========================================
-    // ECR Repository
-    const image = new ContainerImageBuild(this, 'Image', {
+    // Build and publish Docker image to ECR
+    const image = new ContainerImageBuild(this, "Image", {
       directory: path.join(__dirname, "../mcp_server"),
       platform: Platform.LINUX_ARM64,
     });
@@ -104,32 +105,60 @@ export class AgentcoreRuntimeMcpStack extends cdk.Stack {
     // ========================================
     // AgentCore Runtime
     // ========================================
-    const agentRuntimeArtifact = agentcore.AgentRuntimeArtifact.fromEcrRepository(image.repository, image.imageTag);
-    // const agentRuntimeArtifact = agentcore.AgentRuntimeArtifact.fromAsset(
-    //   path.join(__dirname, "../mcp_server"),
-    // );
+    const agentRuntimeArtifact =
+      agentcore.AgentRuntimeArtifact.fromEcrRepository(
+        image.repository,
+        image.imageTag
+      );
 
     // AgentCore Runtime (L2 Construct)
-    const runtime = new agentcore.Runtime(this, "StrandsAgentRuntime", {
-      runtimeName: "simpleStrandsAgent",
+    const runtime = new agentcore.Runtime(this, "RuntimeMCP", {
+      runtimeName: `runtime_mcp_${cdk.Names.uniqueId(this)
+        .toLowerCase()
+        .slice(-8)}`,
       agentRuntimeArtifact: agentRuntimeArtifact,
       description: "MCP Server",
-      authorizerConfiguration: agentcore.RuntimeAuthorizerConfiguration.usingCognito(userPool.userPoolId, userPoolClient.userPoolClientId),
+      environmentVariables: {
+        OPENAI_API_KEY: process.env.OPENAI_API_KEY || "",
+      },
+      authorizerConfiguration:
+        agentcore.RuntimeAuthorizerConfiguration.usingCognito(
+          userPool.userPoolId,
+          userPoolClient.userPoolClientId
+        ),
     });
 
-    //TODO: Environment Variables
-    //TODO: Docker Build をローカルで実施する場合、ARM64対応が必要
-    runtime.node.addDependency(image);
-    image.repository.grantPull(runtime.role);
-    // buildはできてるが、ECRからのpullができてない。
-    /**
-     * ❌  AgentcoreRuntimeMcpStack2 failed: ToolkitError: The stack named AgentcoreRuntimeMcpStack2 failed creation, it may need to be manually deleted from the AWS console: ROLLBACK_COMPLETE: Resource handler returned message: "Invalid request provided: The specified image identifier does not exist in the repository. Verify the image tag format and repository name. (Service: BedrockAgentCoreControl, Status Code: 400, Request ID: af6272bf-7dcc-45b1-a09e-621d77cef9a0) (SDK Attempt Count: 1)" (RequestToken: 411584cb-fa8b-dce0-661f-d37e0450c573, HandlerErrorCode: InvalidRequest)
-     */
+    // ========================================
+    // CloudFormation Outputs
+    // ========================================
+    new cdk.CfnOutput(this, "UserPoolClientId", {
+      value: userPoolClient.userPoolClientId,
+      description: "Cognito User Pool Client ID",
+    });
 
-    // 出力
+    // This secret should not be exposed in production environments
+    new cdk.CfnOutput(this, "UserPoolClientSecret", {
+      value: userPoolClient.userPoolClientSecret.unsafeUnwrap(),
+    });
+
+    // Custom Scopes Output
+    new cdk.CfnOutput(this, "CustomScopeRead", {
+      value: `${resourceServer.userPoolResourceServerId}/gateway:read`,
+      description: "Custom scope for read access",
+    });
+
+    new cdk.CfnOutput(this, "CustomScopeWrite", {
+      value: `${resourceServer.userPoolResourceServerId}/gateway:write`,
+      description: "Custom scope for write access",
+    });
+
+    new cdk.CfnOutput(this, "CognitoDiscoveryUrl", {
+      value: `https://cognito-idp.${this.region}.amazonaws.com/${userPool.userPoolId}/.well-known/openid-configuration`,
+      description: "Cognito OpenID Discovery URL",
+    });
+
     new cdk.CfnOutput(this, "RuntimeArn", {
       value: runtime.agentRuntimeArn,
     });
-
   }
 }

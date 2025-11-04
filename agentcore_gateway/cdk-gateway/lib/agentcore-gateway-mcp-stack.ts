@@ -153,9 +153,6 @@ export class AgentCoreGatewayLambdaMCPStack extends cdk.Stack {
       }
     );
 
-    // Ensure resource server is created before the client
-    userPoolClient.node.addDependency(resourceServer);
-
     // ========================================
     // AgentCore Gateway
     // ========================================
@@ -230,16 +227,6 @@ export class AgentCoreGatewayLambdaMCPStack extends cdk.Stack {
       value: userPoolClient.userPoolClientSecret.unsafeUnwrap()
     });
 
-    new cdk.CfnOutput(this, "CognitoDiscoveryUrl", {
-      value: `https://cognito-idp.${this.region}.amazonaws.com/${userPool.userPoolId}/.well-known/openid-configuration`,
-      description: "Cognito OpenID Discovery URL",
-    });
-
-    new cdk.CfnOutput(this, 'GatewayUrl', {
-      value: gateway.attrGatewayUrl,
-      description: 'URL of the AgentCore Gateway',
-    });
-
     // Custom Scopes Output
     new cdk.CfnOutput(this, "CustomScopeRead", {
       value: `${resourceServer.userPoolResourceServerId}/gateway:read`,
@@ -249,6 +236,16 @@ export class AgentCoreGatewayLambdaMCPStack extends cdk.Stack {
     new cdk.CfnOutput(this, "CustomScopeWrite", {
       value: `${resourceServer.userPoolResourceServerId}/gateway:write`,
       description: "Custom scope for write access",
+    });
+
+    new cdk.CfnOutput(this, "CognitoDiscoveryUrl", {
+      value: `https://cognito-idp.${this.region}.amazonaws.com/${userPool.userPoolId}/.well-known/openid-configuration`,
+      description: "Cognito OpenID Discovery URL",
+    });
+
+    new cdk.CfnOutput(this, 'GatewayUrl', {
+      value: gateway.attrGatewayUrl,
+      description: 'URL of the AgentCore Gateway',
     });
   }
 }
