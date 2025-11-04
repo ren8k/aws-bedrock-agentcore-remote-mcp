@@ -6,6 +6,7 @@ import { ContainerImageBuild } from "deploy-time-build";
 import * as agentcore from "@aws-cdk/aws-bedrock-agentcore-alpha";
 import * as path from "path";
 import * as dotenv from "dotenv";
+import { ProtocolType } from "@aws-cdk/aws-bedrock-agentcore-alpha";
 
 dotenv.config();
 
@@ -121,6 +122,7 @@ export class AgentcoreRuntimeMcpStack extends cdk.Stack {
       environmentVariables: {
         OPENAI_API_KEY: process.env.OPENAI_API_KEY || "",
       },
+      protocolConfiguration: ProtocolType.MCP,
       authorizerConfiguration:
         agentcore.RuntimeAuthorizerConfiguration.usingCognito(
           userPool.userPoolId,
