@@ -129,6 +129,8 @@ export class AgentcoreRuntimeMcpStack extends cdk.Stack {
           userPoolClient.userPoolClientId
         ),
     });
+    // TODO: Cognito認証設定に破壊的変更があった模様。
+    // TODO: https://x.com/mazyu36/status/1985715176306622779
 
     // ========================================
     // CloudFormation Outputs
