@@ -163,6 +163,7 @@ export class AgentcoreRuntimeMcpStack extends cdk.Stack {
 
     new cdk.CfnOutput(this, "RuntimeArn", {
       value: runtime.agentRuntimeArn,
+      description: "ARN of the AgentCore Runtime",
     });
   }
 }
