@@ -7,7 +7,7 @@ from mcp.client.streamable_http import streamablehttp_client
 from strands import Agent
 from strands.tools.mcp import MCPClient
 
-PROMPT = "Claudeのskillsについて調べて。もしエラーが発生した場合、そのエラーの内容を教えて。また、このエラーはOpenAIのAPIで発生しているの？"
+PROMPT = "Claude Skillsについて調べて。"
 
 load_dotenv()
 
