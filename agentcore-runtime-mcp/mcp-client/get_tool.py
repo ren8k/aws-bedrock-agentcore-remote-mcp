@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from mcp import ClientSession
 from mcp.client.streamable_http import streamablehttp_client
 
-load_dotenv()
+load_dotenv(override=True, dotenv_path="../../agentcore-identity/.env")
 
 
 @requires_access_token(

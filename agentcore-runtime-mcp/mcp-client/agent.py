@@ -9,7 +9,7 @@ from strands.tools.mcp import MCPClient
 
 PROMPT = "Claude Skillsについて調べて。"
 
-load_dotenv()
+load_dotenv(override=True, dotenv_path="../../agentcore-identity/.env")
 
 
 @requires_access_token(
