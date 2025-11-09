@@ -5,14 +5,20 @@ import { Platform } from "aws-cdk-lib/aws-ecr-assets";
 import { ContainerImageBuild } from "deploy-time-build";
 import * as agentcore from "@aws-cdk/aws-bedrock-agentcore-alpha";
 import * as path from "path";
-import * as dotenv from "dotenv";
 import { ProtocolType } from "@aws-cdk/aws-bedrock-agentcore-alpha";
 
-dotenv.config();
+export interface AgentcoreRuntimeMcpStackProps extends cdk.StackProps {
+  openaiApiKey: string;
+}
 
 export class AgentcoreRuntimeMcpStack extends cdk.Stack {
-  constructor(scope: Construct, id: string, props?: cdk.StackProps) {
+  constructor(scope: Construct, id: string, props: AgentcoreRuntimeMcpStackProps) {
     super(scope, id, props);
+
+    // Validate required configuration
+    if (!props.openaiApiKey) {
+      throw new Error('openaiApiKey must be provided in stack props. Please set OPENAI_API_KEY in your .env file.');
+    }
 
     // ========================================
     // Cognito User Pool
@@ -29,12 +35,9 @@ export class AgentcoreRuntimeMcpStack extends cdk.Stack {
     // Create User Pool Domain
     const userPoolDomain = userPool.addDomain("AgentCoreUserPoolDomain", {
       cognitoDomain: {
-        domainPrefix: `agentcore-${this.account}-${cdk.Names.uniqueId(this)
-          .toLowerCase()
-          .slice(-10)}`,
+        domainPrefix: `agentcore-${id.toLowerCase()}`,
       },
     });
-    // BUG: −８にするとダメ。
 
     // ========================================
     // Cognito Resource Server
@@ -114,13 +117,11 @@ export class AgentcoreRuntimeMcpStack extends cdk.Stack {
 
     // AgentCore Runtime (L2 Construct)
     const runtime = new agentcore.Runtime(this, "RuntimeMCP", {
-      runtimeName: `runtime_mcp_${cdk.Names.uniqueId(this)
-        .toLowerCase()
-        .slice(-8)}`,
+      runtimeName: `runtimeMcp_${id.toLowerCase()}`,
       agentRuntimeArtifact: agentRuntimeArtifact,
       description: "MCP Server",
       environmentVariables: {
-        OPENAI_API_KEY: process.env.OPENAI_API_KEY || "",
+        OPENAI_API_KEY: props.openaiApiKey,
       },
       protocolConfiguration: ProtocolType.MCP,
       authorizerConfiguration:
