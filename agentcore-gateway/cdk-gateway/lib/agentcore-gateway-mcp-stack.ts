@@ -5,15 +5,20 @@ import * as cognito from "aws-cdk-lib/aws-cognito";
 import * as agentcore from 'aws-cdk-lib/aws-bedrockagentcore';
 import { Construct } from "constructs";
 import * as path from "path";
-import * as dotenv from "dotenv";
 
-dotenv.config();
+export interface AgentCoreGatewayLambdaMCPStackProps extends cdk.StackProps {
+  openaiApiKey: string;
+  gatewayTargetName: string;
+}
 
 export class AgentCoreGatewayLambdaMCPStack extends cdk.Stack {
-  constructor(scope: Construct, id: string, props?: cdk.StackProps) {
+  constructor(scope: Construct, id: string, props: AgentCoreGatewayLambdaMCPStackProps) {
     super(scope, id, props);
-    const gatewayName = `AgentCoreGateway-${cdk.Names.uniqueId(this).toLowerCase().slice(-8)}`;
-    const gatewayTargetName = "AgentCoreGatewayTarget";
+
+    // Validate required configuration
+    if (!props.openaiApiKey) {
+      throw new Error('openaiApiKey must be provided in stack props. Please set OPENAI_API_KEY in your .env file.');
+    }
 
     // Lambda Layer for dependencies
     const layer = new lambda.LayerVersion(this, "DependenciesLayer", {
@@ -38,7 +43,7 @@ export class AgentCoreGatewayLambdaMCPStack extends cdk.Stack {
       layers: [layer],
       timeout: cdk.Duration.minutes(10),
       environment: {
-        OPENAI_API_KEY: process.env.OPENAI_API_KEY || "",
+        OPENAI_API_KEY: props.openaiApiKey,
       },
     });
 
@@ -60,6 +65,8 @@ export class AgentCoreGatewayLambdaMCPStack extends cdk.Stack {
     });
 
     // Attach inline policy to the role
+    // Note: This policy uses broad permissions for simplicity.
+    // In production, consider restricting resources to specific ARNs.
     agentCoreRole.addToPolicy(
       new iam.PolicyStatement({
         sid: "AgentCorePermissions",
@@ -91,7 +98,7 @@ export class AgentCoreGatewayLambdaMCPStack extends cdk.Stack {
     // Create User Pool Domain
     const userPoolDomain = userPool.addDomain("AgentCoreUserPoolDomain", {
       cognitoDomain: {
-        domainPrefix: `agentcore-${this.account}-${cdk.Names.uniqueId(this).toLowerCase().slice(-8)}`,
+        domainPrefix: `agentcore-${id.toLowerCase()}`,
       },
     });
 
@@ -103,7 +110,7 @@ export class AgentCoreGatewayLambdaMCPStack extends cdk.Stack {
       "AgentCoreResourceServer",
       {
         userPool: userPool,
-        identifier: `agentcore-gateway-m2m-server`,
+        identifier: "agentcore-gateway-m2m-server",
         scopes: [
           {
             scopeName: "gateway:read",
@@ -157,7 +164,7 @@ export class AgentCoreGatewayLambdaMCPStack extends cdk.Stack {
     // AgentCore Gateway
     // ========================================
     const gateway = new agentcore.CfnGateway(this, 'Gateway', {
-      name: gatewayName,
+      name: `AgentCoreGateway-${id}`,
       description: 'Gateway for OpenAI Web Search Lambda',
       protocolType: 'MCP',
       protocolConfiguration: {
@@ -176,9 +183,11 @@ export class AgentCoreGatewayLambdaMCPStack extends cdk.Stack {
       exceptionLevel: 'DEBUG',
     });
 
-    // Create target
-    new agentcore.CfnGatewayTarget(this, 'AccountingTarget', {
-      name: gatewayTargetName,
+    // ========================================
+    // AgentCore Gateway Target
+    // ========================================
+    new agentcore.CfnGatewayTarget(this, 'OpenAIWebSearchTarget', {
+      name: props.gatewayTargetName,
       description: 'Lambda Target',
       gatewayIdentifier: gateway.attrGatewayIdentifier,
       credentialProviderConfigurations: [
