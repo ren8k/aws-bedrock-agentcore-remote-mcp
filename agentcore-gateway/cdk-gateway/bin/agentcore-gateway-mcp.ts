@@ -1,18 +1,18 @@
 #!/usr/bin/env node
-import * as cdk from 'aws-cdk-lib';
-import * as dotenv from 'dotenv';
-import { AgentCoreGatewayLambdaMCPStack } from '../lib/agentcore-gateway-mcp-stack';
+import * as cdk from "aws-cdk-lib";
+import * as dotenv from "dotenv";
+import { AgentCoreGatewayLambdaMCPStack } from "../lib/agentcore-gateway-mcp-stack";
 
 // Load environment variables from .env file
 dotenv.config();
 
 const app = new cdk.App();
 
-new AgentCoreGatewayLambdaMCPStack(app, 'AgentCoreGatewayLambdaMCPStack', {
+new AgentCoreGatewayLambdaMCPStack(app, "AgentCoreGatewayLambdaMCPStack2", {
   env: {
     account: process.env.CDK_DEFAULT_ACCOUNT,
-    region: process.env.CDK_DEFAULT_REGION || 'us-east-1'
+    region: process.env.CDK_DEFAULT_REGION || "us-east-1",
   },
-  openaiApiKey: process.env.OPENAI_API_KEY || '',
-  gatewayTargetName: 'LambdaTarget',
+  openaiApiKey: process.env.OPENAI_API_KEY || "",
+  gatewayTargetName: "LambdaTarget",
 });
