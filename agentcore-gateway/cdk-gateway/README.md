@@ -65,13 +65,7 @@ cp .env.example .env
 npm ci
 ```
 
-### 3. TypeScript のビルド
-
-```bash
-npm run build
-```
-
-### 4. CDK Bootstrap（初回のみ）
+### 3. CDK Bootstrap（初回のみ）
 
 AWS アカウントとリージョンで初めて CDK を使用する場合：
 
@@ -102,57 +96,15 @@ npx cdk deploy
 
 ```
 Outputs:
-AgentCoreGatewayLambdaMCPStack.UserPoolClientId = <client-id>
-AgentCoreGatewayLambdaMCPStack.UserPoolClientSecret = <client-secret>
+AgentCoreGatewayLambdaMCPStack.CognitoDiscoveryUrl = https://cognito-idp.us-east-1.amazonaws.com/<user-pool-id>/.well-known/openid-configuration
 AgentCoreGatewayLambdaMCPStack.CustomScopeRead = agentcore-gateway-m2m-server/gateway:read
 AgentCoreGatewayLambdaMCPStack.CustomScopeWrite = agentcore-gateway-m2m-server/gateway:write
-AgentCoreGatewayLambdaMCPStack.CognitoDiscoveryUrl = https://cognito-idp.us-east-1.amazonaws.com/<user-pool-id>/.well-known/openid-configuration
 AgentCoreGatewayLambdaMCPStack.GatewayUrl = https://<gateway-id>.agentcore.us-east-1.amazonaws.com
+AgentCoreGatewayLambdaMCPStack.UserPoolClientId = <client-id>
+AgentCoreGatewayLambdaMCPStack.UserPoolClientSecret = <client-secret>
 ```
 
-**重要**: これらの値は後で使用するため、安全な場所に保存してください。
-
-## 使用方法
-
-### 1. Cognito トークンの取得
-
-```bash
-# Client IDとClient Secretを環境変数に設定
-export CLIENT_ID="<UserPoolClientId>"
-export CLIENT_SECRET="<UserPoolClientSecret>"
-export USER_POOL_DOMAIN="agentcore-<stack-id>"
-export REGION="us-east-1"
-
-# アクセストークンを取得
-TOKEN=$(curl -X POST \
-  "https://${USER_POOL_DOMAIN}.auth.${REGION}.amazoncognito.com/oauth2/token" \
-  -H "Content-Type: application/x-www-form-urlencoded" \
-  -d "grant_type=client_credentials&client_id=${CLIENT_ID}&client_secret=${CLIENT_SECRET}&scope=agentcore-gateway-m2m-server/gateway:read agentcore-gateway-m2m-server/gateway:write" \
-  | jq -r '.access_token')
-
-echo "Token: $TOKEN"
-```
-
-### 2. Bedrock Agent からの利用
-
-Bedrock Agent の設定で以下を指定：
-
-- **Gateway URL**: デプロイ出力の`GatewayUrl`
-- **Authentication**: Custom JWT
-- **Token**: 上記で取得したトークン
-
-### 3. ツールの呼び出し
-
-Bedrock Agent から`openai_deep_research`ツールを呼び出すことで、OpenAI o3 の Web 検索機能を利用できます。
-
-```json
-{
-  "name": "openai_deep_research",
-  "parameters": {
-    "question": "最新のAWS Bedrockの機能について教えてください"
-  }
-}
-```
+**重要**: これらの値は後で使用するため、[agentcore-identity](https://github.com/ren8k/aws-bedrock-agentcore-remote-mcp/tree/main/agentcore-identity)ディレクトリの `.env` に保存してください。`.env` の構成については、[.env.example](https://github.com/ren8k/aws-bedrock-agentcore-remote-mcp/blob/main/agentcore-identity/.env.example) を参考にしてください。
 
 ## プロジェクト構造
 
