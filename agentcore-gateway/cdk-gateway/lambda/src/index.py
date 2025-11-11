@@ -6,7 +6,7 @@ INSTRUCTIONS = """
 """
 
 
-def openai_o3_web_search(question: str) -> str:
+def openai_gpt5_web_search(question: str) -> str:
     """An AI agent with advanced web search capabilities. Useful for finding the latest information,
     troubleshooting errors, and discussing ideas or design challenges. Supports natural language queries.
 
@@ -19,7 +19,7 @@ def openai_o3_web_search(question: str) -> str:
     client = OpenAI()
     response = client.responses.create(
         model="gpt-5",
-        tools=[{"type": "web_search_preview"}],
+        tools=[{"type": "web_search"}],
         instructions=INSTRUCTIONS,
         input=question,
     )
