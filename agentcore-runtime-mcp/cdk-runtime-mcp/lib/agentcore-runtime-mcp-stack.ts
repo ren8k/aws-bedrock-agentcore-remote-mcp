@@ -12,12 +12,18 @@ export interface AgentcoreRuntimeMcpStackProps extends cdk.StackProps {
 }
 
 export class AgentcoreRuntimeMcpStack extends cdk.Stack {
-  constructor(scope: Construct, id: string, props: AgentcoreRuntimeMcpStackProps) {
+  constructor(
+    scope: Construct,
+    id: string,
+    props: AgentcoreRuntimeMcpStackProps
+  ) {
     super(scope, id, props);
 
     // Validate required configuration
     if (!props.openaiApiKey) {
-      throw new Error('openaiApiKey must be provided in stack props. Please set OPENAI_API_KEY in your .env file.');
+      throw new Error(
+        "openaiApiKey must be provided in stack props. Please set OPENAI_API_KEY in your .env file."
+      );
     }
 
     // ========================================

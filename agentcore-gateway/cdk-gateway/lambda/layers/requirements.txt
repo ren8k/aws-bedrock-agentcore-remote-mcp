@@ -1,2 +1,2 @@
 fastapi==0.99.0
-openai
+openai==2.6.1

@@ -6,7 +6,7 @@ INSTRUCTIONS = """
 """
 
 
-def openai_o3_web_search(question: str) -> str:
+def openai_web_search(question: str) -> str:
     """An AI agent with advanced web search capabilities. Useful for finding the latest information,
     troubleshooting errors, and discussing ideas or design challenges. Supports natural language queries.
 
@@ -19,7 +19,8 @@ def openai_o3_web_search(question: str) -> str:
     client = OpenAI()
     response = client.responses.create(
         model="gpt-5",
-        tools=[{"type": "web_search_preview"}],
+        tools=[{"type": "web_search"}],
+        # reasoning={"effort": "high"},
         instructions=INSTRUCTIONS,
         input=question,
     )
@@ -28,7 +29,7 @@ def openai_o3_web_search(question: str) -> str:
 
 def lambda_handler(event, context):
     try:
-        result = openai_o3_web_search(event.get("question"))
+        result = openai_web_search(event.get("question"))
         return {"statusCode": 200, "body": result}
     except Exception as e:
         return {"statusCode": 500, "body": f"Error occurred: {str(e)}"}

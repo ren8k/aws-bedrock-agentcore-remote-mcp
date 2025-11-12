@@ -2,7 +2,7 @@ import * as cdk from "aws-cdk-lib";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as cognito from "aws-cdk-lib/aws-cognito";
-import * as agentcore from 'aws-cdk-lib/aws-bedrockagentcore';
+import * as agentcore from "aws-cdk-lib/aws-bedrockagentcore";
 import { Construct } from "constructs";
 import * as path from "path";
 
@@ -12,12 +12,18 @@ export interface AgentCoreGatewayLambdaMCPStackProps extends cdk.StackProps {
 }
 
 export class AgentCoreGatewayLambdaMCPStack extends cdk.Stack {
-  constructor(scope: Construct, id: string, props: AgentCoreGatewayLambdaMCPStackProps) {
+  constructor(
+    scope: Construct,
+    id: string,
+    props: AgentCoreGatewayLambdaMCPStackProps
+  ) {
     super(scope, id, props);
 
     // Validate required configuration
     if (!props.openaiApiKey) {
-      throw new Error('openaiApiKey must be provided in stack props. Please set OPENAI_API_KEY in your .env file.');
+      throw new Error(
+        "openaiApiKey must be provided in stack props. Please set OPENAI_API_KEY in your .env file."
+      );
     }
 
     // Lambda Layer for dependencies
@@ -36,16 +42,20 @@ export class AgentCoreGatewayLambdaMCPStack extends cdk.Stack {
     });
 
     // Lambda Function
-    const openAIFunction = new lambda.Function(this, "OpenAIWebSearchFunction", {
-      runtime: lambda.Runtime.PYTHON_3_13,
-      handler: "index.lambda_handler",
-      code: lambda.Code.fromAsset(path.join(__dirname, "../lambda/src")),
-      layers: [layer],
-      timeout: cdk.Duration.minutes(10),
-      environment: {
-        OPENAI_API_KEY: props.openaiApiKey,
-      },
-    });
+    const openAIFunction = new lambda.Function(
+      this,
+      "OpenAIWebSearchFunction",
+      {
+        runtime: lambda.Runtime.PYTHON_3_13,
+        handler: "index.lambda_handler",
+        code: lambda.Code.fromAsset(path.join(__dirname, "../lambda/src")),
+        layers: [layer],
+        timeout: cdk.Duration.minutes(10),
+        environment: {
+          OPENAI_API_KEY: props.openaiApiKey,
+        },
+      }
+    );
 
     // ========================================
     // IAM Role for AgentCore Gateway
@@ -61,7 +71,8 @@ export class AgentCoreGatewayLambdaMCPStack extends cdk.Stack {
           },
         },
       }),
-      description: "IAM role for AgentCore Gateway to access Bedrock and Lambda",
+      description:
+        "IAM role for AgentCore Gateway to access Bedrock and Lambda",
     });
 
     // Attach inline policy to the role
@@ -163,16 +174,16 @@ export class AgentCoreGatewayLambdaMCPStack extends cdk.Stack {
     // ========================================
     // AgentCore Gateway
     // ========================================
-    const gateway = new agentcore.CfnGateway(this, 'Gateway', {
+    const gateway = new agentcore.CfnGateway(this, "Gateway", {
       name: `AgentCoreGateway-${id}`,
-      description: 'Gateway for OpenAI Web Search Lambda',
-      protocolType: 'MCP',
+      description: "Gateway for OpenAI Web Search Lambda",
+      protocolType: "MCP",
       protocolConfiguration: {
         mcp: {
-          searchType: 'SEMANTIC',
+          searchType: "SEMANTIC",
         },
       },
-      authorizerType: 'CUSTOM_JWT', // Inbound authentication using Cognito JWT
+      authorizerType: "CUSTOM_JWT", // Inbound authentication using Cognito JWT
       authorizerConfiguration: {
         customJwtAuthorizer: {
           discoveryUrl: `https://cognito-idp.${this.region}.amazonaws.com/${userPool.userPoolId}/.well-known/openid-configuration`,
@@ -180,19 +191,19 @@ export class AgentCoreGatewayLambdaMCPStack extends cdk.Stack {
         },
       },
       roleArn: agentCoreRole.roleArn,
-      exceptionLevel: 'DEBUG',
+      exceptionLevel: "DEBUG",
     });
 
     // ========================================
     // AgentCore Gateway Target
     // ========================================
-    new agentcore.CfnGatewayTarget(this, 'OpenAIWebSearchTarget', {
+    new agentcore.CfnGatewayTarget(this, "OpenAIWebSearchTarget", {
       name: props.gatewayTargetName,
-      description: 'Lambda Target',
+      description: "Lambda Target",
       gatewayIdentifier: gateway.attrGatewayIdentifier,
       credentialProviderConfigurations: [
         {
-          credentialProviderType: 'GATEWAY_IAM_ROLE', // Outbound authentication using IAM Role
+          credentialProviderType: "GATEWAY_IAM_ROLE", // Outbound authentication using IAM Role
         },
       ],
       targetConfiguration: {
@@ -203,17 +214,19 @@ export class AgentCoreGatewayLambdaMCPStack extends cdk.Stack {
               // https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-properties-bedrockagentcore-gatewaytarget-tooldefinition.html
               inlinePayload: [
                 {
-                  name: "openai_deep_research",
-                  description: "An AI agent with advanced web search capabilities. Useful for finding the latest information, troubleshooting errors, and discussing ideas or design challenges. Supports natural language queries.",
+                  name: "openai_web_search",
+                  description:
+                    "An AI agent with advanced web search capabilities. Useful for finding the latest information, troubleshooting errors, and discussing ideas or design challenges. Supports natural language queries.",
                   inputSchema: {
-                    type: 'object',
+                    type: "object",
                     properties: {
                       question: {
-                        type: 'string',
-                        description: 'Question text to send to OpenAI o3. It supports natural language queries. Write in Japanese. Be direct and specific about your requirements. Avoid chain-of-thought instructions like `think step by step` as o3 handles reasoning internally.',
+                        type: "string",
+                        description:
+                          "Question text to send to OpenAI o3. It supports natural language queries. Write in Japanese. Be direct and specific about your requirements. Avoid chain-of-thought instructions like `think step by step` as o3 handles reasoning internally.",
                       },
                     },
-                    required: ['question'],
+                    required: ["question"],
                   },
                 },
               ],
@@ -232,8 +245,8 @@ export class AgentCoreGatewayLambdaMCPStack extends cdk.Stack {
     });
 
     // This secret should not be exposed in production environments
-    new cdk.CfnOutput(this, 'UserPoolClientSecret', {
-      value: userPoolClient.userPoolClientSecret.unsafeUnwrap()
+    new cdk.CfnOutput(this, "UserPoolClientSecret", {
+      value: userPoolClient.userPoolClientSecret.unsafeUnwrap(),
     });
 
     // Custom Scopes Output
@@ -252,9 +265,9 @@ export class AgentCoreGatewayLambdaMCPStack extends cdk.Stack {
       description: "Cognito OpenID Discovery URL",
     });
 
-    new cdk.CfnOutput(this, 'GatewayUrl', {
+    new cdk.CfnOutput(this, "GatewayUrl", {
       value: gateway.attrGatewayUrl,
-      description: 'URL of the AgentCore Gateway',
+      description: "URL of the AgentCore Gateway",
     });
   }
 }
