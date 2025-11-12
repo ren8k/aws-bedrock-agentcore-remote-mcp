@@ -11,7 +11,7 @@ mcp = FastMCP(name="openai-web-search-mcp-server", host="0.0.0.0", stateless_htt
 
 
 @mcp.tool()
-def openai_gpt5_web_search(
+def openai_web_search(
     question: str = Field(
         description="""Question text to send to OpenAI o3. It supports natural language queries.
         Write in Japanese. Be direct and specific about your requirements.
