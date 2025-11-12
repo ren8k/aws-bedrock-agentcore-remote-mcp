@@ -214,7 +214,7 @@ export class AgentCoreGatewayLambdaMCPStack extends cdk.Stack {
               // https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-properties-bedrockagentcore-gatewaytarget-tooldefinition.html
               inlinePayload: [
                 {
-                  name: "openai_deep_research",
+                  name: "openai_web_search",
                   description:
                     "An AI agent with advanced web search capabilities. Useful for finding the latest information, troubleshooting errors, and discussing ideas or design challenges. Supports natural language queries.",
                   inputSchema: {

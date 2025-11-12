@@ -8,7 +8,7 @@ dotenv.config();
 
 const app = new cdk.App();
 
-new AgentCoreGatewayLambdaMCPStack(app, "AgentCoreGatewayLambdaMCPStack2", {
+new AgentCoreGatewayLambdaMCPStack(app, "AgentCoreGatewayLambdaMCPStack", {
   env: {
     account: process.env.CDK_DEFAULT_ACCOUNT,
     region: process.env.CDK_DEFAULT_REGION || "us-east-1",
