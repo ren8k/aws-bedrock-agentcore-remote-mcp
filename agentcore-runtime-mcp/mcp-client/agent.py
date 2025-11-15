@@ -62,7 +62,7 @@ async def main():
     validate_env_vars()
     prompt = sys.argv[1] if len(sys.argv) > 1 else "Claude Skillsについて調べて。"
     access_token = await get_access_token(access_token="")
-    runtime_arn = os.getenv("RUNTIME_ARN")
+    runtime_arn = os.getenv("RUNTIME_ARN", "")
     mcp_endpoint = get_mcp_endpoint(runtime_arn)
 
     mcp_client = create_mcp_client(mcp_endpoint, access_token)
