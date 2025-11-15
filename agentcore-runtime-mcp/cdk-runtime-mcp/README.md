@@ -1,13 +1,13 @@
 # AgentCore Runtime MCP Stack
 
-このプロジェクトは、AWS CDK を使用して Amazon Bedrock AgentCore Runtime をデプロイし、OpenAI o3 モデルを利用した Web 検索機能を MCP（Model Context Protocol）経由で提供するインフラストラクチャです。
+このプロジェクトは、AWS CDK を使用して Amazon Bedrock AgentCore Runtime をデプロイし、OpenAI GPT-5 モデルを利用した Web 検索機能を MCP（Model Context Protocol）経由で提供するインフラストラクチャです。
 
 ## 概要
 
 このスタックは以下の AWS リソースをデプロイします：
 
-- **ECS on Fargate**: MCP サーバーをコンテナで実行
 - **ECR Repository**: Docker イメージの保存
+- **Deploy-Time-Build (L3 Construct)**: CodeBuild と Lambda を使用したコンテナイメージのビルドとデプロイ
 - **Amazon Cognito**: ユーザープール、リソースサーバー、M2M クライアント認証
 - **Bedrock AgentCore Runtime**: MCP プロトコルによるランタイム環境
 
@@ -26,9 +26,8 @@
          │
          ↓
 ┌─────────────────────┐
-│  ECS on Fargate     │
-│  (MCP Server)       │
-│  (OpenAI o3 + Web)  │
+│   MCP Server        │
+│  (GPT-5 + Web)      │
 └─────────────────────┘
 ```
 
@@ -37,8 +36,7 @@
 - Node.js 18 以上
 - AWS CLI 設定済み（`aws configure`）
 - AWS CDK CLI（`npm install -g aws-cdk`）
-- OpenAI API キー（o3 アクセス権限）
-- Docker デーモン起動中（コンテナイメージのビルドに必要）
+- OpenAI API キー（GPT-5 アクセス権限）
 
 ## セットアップ
 
@@ -79,8 +77,9 @@ npx cdk deploy
 デプロイ時に以下のリソースの作成が確認されます：
 
 - IAM ロールとポリシー
-- ECR リポジトリとコンテナイメージ
-- ECS クラスターとサービス
+- ECR リポジトリ
+- CodeBuild プロジェクト（コンテナイメージのビルド用）
+- Lambda 関数（デプロイ時のビルド実行用）
 - Cognito 認証リソース
 - AgentCore Runtime
 
@@ -149,14 +148,15 @@ npx cdk destroy
 
 ## トラブルシューティング
 
-### Docker イメージのビルドエラー
+### CodeBuild イメージビルドエラー
 
-**症状**: `docker build failed` エラー
+**症状**: デプロイ時にコンテナイメージのビルドが失敗する
 
-**解決方法**: Docker デーモンが起動していることを確認してください。
+**解決方法**: CodeBuild のログを確認してください。
 
 ```bash
-docker ps
+aws codebuild list-projects
+aws codebuild batch-get-builds --ids <build-id>
 ```
 
 ### OpenAI API キーエラー
@@ -170,21 +170,20 @@ cat .env
 # OPENAI_API_KEY=sk-proj-... が正しく設定されているか確認
 ```
 
-### ECS タスク起動エラー
+### Runtime 起動エラー
 
 **症状**: Runtime が正常に動作しない
 
-**解決方法**: ECS タスクのログを確認してください。
+**解決方法**: CloudWatch Logs で Runtime のログを確認してください。
 
 ```bash
-aws ecs list-tasks --cluster <cluster-name>
-aws ecs describe-tasks --cluster <cluster-name> --tasks <task-arn>
+aws logs describe-log-groups --log-group-name-prefix /aws/bedrock/agentcore
 ```
 
 ## セキュリティに関する注意事項
 
 1. **Client Secret**: 本番環境では、AWS Secrets Manager などに保存することを推奨します。CloudFormation 出力には含めないでください。
-2. **OpenAI API キー**: ECS タスク環境変数に設定されますが、より厳重な管理には Secrets Manager を使用してください。
+2. **OpenAI API キー**: Runtime の環境変数に設定されますが、より厳重な管理には Secrets Manager を使用してください。
 3. **IAM ポリシー**: 本スタックは開発用に広範な権限を付与しています。本番環境では最小権限の原則に従って制限してください。
 
 ## クリーンアップ
@@ -201,7 +200,7 @@ npx cdk destroy
 
 - Cognito User Pool は `RemovalPolicy.DESTROY` が設定されているため、スタック削除時に自動的に削除されます。
 - ECR リポジトリとイメージも削除されます。
-- ECS クラスターとサービスも削除されます。
+- CodeBuild プロジェクトと Lambda 関数も削除されます。
 
 ## 参考資料
 
@@ -209,4 +208,4 @@ npx cdk destroy
 - [Amazon Bedrock AgentCore](https://docs.aws.amazon.com/bedrock/latest/userguide/agents.html)
 - [Model Context Protocol (MCP)](https://spec.modelcontextprotocol.io/)
 - [OpenAI API Documentation](https://platform.openai.com/docs/)
-- [Amazon ECS on Fargate](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/AWS_Fargate.html)
+- [Deploy-Time-Build CDK Construct](https://github.com/aws-samples/deploy-time-build)
