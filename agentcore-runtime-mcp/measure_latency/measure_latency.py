@@ -143,7 +143,7 @@ async def main():
     test_args = {"name": "Jack"}
 
     await measure_latency(
-        mcp_endpoint, access_token, iterations=10, test_args=test_args
+        mcp_endpoint, access_token, iterations=50, test_args=test_args
     )
 
 
