@@ -9,6 +9,7 @@ from mcp import ClientSession
 from mcp.client.streamable_http import streamablehttp_client
 
 load_dotenv(override=True, dotenv_path="../../agentcore-identity/.env")
+TEST_ARGS = {"name": "Jack"}
 
 
 @requires_access_token(
@@ -40,11 +41,12 @@ async def measure_latency(iterations: int = 10):
         "connection": [],
         "initialize": [],
         "list_tools": [],
-        "total": []
+        "call_tool": [],
+        "total": [],
     }
 
     for i in range(iterations):
-        print(f"\n📊 Iteration {i+1}/{iterations}")
+        print(f"\n📊 Iteration {i + 1}/{iterations}")
 
         start_total = time.perf_counter()
 
@@ -62,22 +64,31 @@ async def measure_latency(iterations: int = 10):
                 latencies["initialize"].append(init_time)
 
                 start_list = time.perf_counter()
-                await session.list_tools()
+                tools = await session.list_tools()
                 list_time = time.perf_counter() - start_list
                 latencies["list_tools"].append(list_time)
+
+                if tools.tools:
+                    tool = tools.tools[0]
+                    start_call = time.perf_counter()
+                    await session.call_tool(tool.name, arguments=TEST_ARGS)
+                    call_time = time.perf_counter() - start_call
+                    latencies["call_tool"].append(call_time)
 
         total_time = time.perf_counter() - start_total
         latencies["total"].append(total_time)
 
-        print(f"  Connection: {conn_time*1000:.2f}ms")
-        print(f"  Initialize: {init_time*1000:.2f}ms")
-        print(f"  List Tools: {list_time*1000:.2f}ms")
-        print(f"  Total: {total_time*1000:.2f}ms")
+        print(f"  Connection: {conn_time * 1000:.2f}ms")
+        print(f"  Initialize: {init_time * 1000:.2f}ms")
+        print(f"  List Tools: {list_time * 1000:.2f}ms")
+        if latencies["call_tool"]:
+            print(f"  Call Tool:  {latencies['call_tool'][-1] * 1000:.2f}ms")
+        print(f"  Total: {total_time * 1000:.2f}ms")
         time.sleep((2))
 
-    print("\n" + "="*50)
+    print("\n" + "=" * 50)
     print("📈 LATENCY STATISTICS (ms)")
-    print("="*50)
+    print("=" * 50)
 
     for operation, times in latencies.items():
         times_ms = [t * 1000 for t in times]
