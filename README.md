@@ -1,9 +1,9 @@
 # AWS Bedrock AgentCore Remote MCP
 
-## Gateway
+## AgentCore Gateway
 
-![gateway](./assets/fig_gateway.png)
+![gateway](./assets/fig_gateway_2.png)
 
-## Runtimeß
+## AgentCore Runtime
 
-![runtime](./assets/fig_runtime.png)
+![runtime](./assets/fig_runtime_2.png)
