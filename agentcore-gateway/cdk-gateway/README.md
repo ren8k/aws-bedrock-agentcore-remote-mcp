@@ -107,10 +107,10 @@ cdk-gateway/
 │   └── layers/
 │       └── requirements.txt           # Python依存関係
 ├── .env.example                       # 環境変数のサンプル
-├── .env                              # 環境変数（未コミット）
+├── .env                               # 環境変数（未コミット）
 ├── package.json                       # Node.js依存関係
 ├── tsconfig.json                      # TypeScript設定
-└── cdk.json                          # CDK設定
+└── cdk.json                           # CDK設定
 ```
 
 ## CDK コマンド
