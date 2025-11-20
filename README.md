@@ -1,10 +1,10 @@
 # AWS Bedrock AgentCore Remote MCP
 
-AWS マネージドサービスを利用して Remote MCP サーバーを実現する 2 つの方法の実装例とレイテンシー検証コードです。
+Amazon Bedrock AgentCore を利用して Remote MCP サーバーを実現する 2 つの方法の検証コード
 
 ## 概要
 
-本リポジトリでは、以下の 2 つのアプローチで Remote MCP サーバーを構築する方法を提供します：
+本リポジトリでは、以下の 2 つのアプローチで Remote MCP サーバーを構築する方法を提供します。CDK の実装を公開しております。
 
 1. **AgentCore Gateway + Lambda**: 既存の Lambda 関数を MCP サーバーとして利用
 2. **AgentCore Runtime**: Docker コンテナで MCP サーバーをホスト
@@ -17,7 +17,7 @@ AWS マネージドサービスを利用して Remote MCP サーバーを実現�
 
 ![gateway](./assets/fig_gateway_2.png)
 
-Lambda 関数を MCP サーバーとして利用する構成です。既存の Lambda を流用でき、低レイテンシーが特徴です。
+Lambda 関数を MCP サーバーとして利用する構成です。既存の Lambda を流用できる点や、低レイテンシーである点が特徴です。
 
 ### (2) AgentCore Runtime
 
@@ -42,7 +42,7 @@ Docker コンテナで MCP サーバーをホストする構成です。開発�
 
 ## クイックスタート
 
-各ディレクトリの README.md に詳細な手順を記載しています：
+各ディレクトリの README.md に詳細な手順を記載しています。
 
 - [AgentCore Gateway のデプロイ手順](./agentcore-gateway/cdk-gateway/README.md)
 - [AgentCore Runtime のデプロイ手順](./agentcore-runtime-mcp/cdk-runtime-mcp/README.md)
