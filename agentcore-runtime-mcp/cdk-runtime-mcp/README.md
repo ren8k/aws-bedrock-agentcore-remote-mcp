@@ -1,6 +1,6 @@
 # AgentCore Runtime MCP Stack
 
-このプロジェクトは、AWS CDK を使用して Amazon Bedrock AgentCore Runtime をデプロイし、OpenAI GPT-5 モデルを利用した Web 検索機能を MCP（Model Context Protocol）経由で提供するインフラストラクチャです。
+本プロジェクトは、AWS CDK を使用して Amazon Bedrock AgentCore Runtime をデプロイし、OpenAI GPT-5 を利用した Web 検索機能を MCP（Model Context Protocol）経由で利用するためのサンプルです。
 
 ## 概要
 
@@ -13,23 +13,10 @@
 
 ## アーキテクチャ
 
-```
-┌─────────────────┐
-│  Bedrock Agent  │
-└────────┬────────┘
-         │ JWT Auth (Cognito)
-         ↓
-┌─────────────────────┐
-│  AgentCore Runtime  │
-│   (MCP Protocol)    │
-└────────┬────────────┘
-         │
-         ↓
-┌─────────────────────┐
-│   MCP Server        │
-│  (GPT-5 + Web)      │
-└─────────────────────┘
-```
+![gateway](../../assets/fig_runtime_2.png)
+
+> [!NOTE]
+> AgentCore Identity は 2025/11/20 時点では CloudFormation でデプロイできないので、boto3 でデプロイします。詳細は[本ディレクトリ](https://github.com/ren8k/aws-bedrock-agentcore-remote-mcp/blob/main/agentcore-identity)を参照して下さい。
 
 ## 前提条件
 
@@ -201,11 +188,3 @@ npx cdk destroy
 - Cognito User Pool は `RemovalPolicy.DESTROY` が設定されているため、スタック削除時に自動的に削除されます。
 - ECR リポジトリとイメージも削除されます。
 - CodeBuild プロジェクトと Lambda 関数も削除されます。
-
-## 参考資料
-
-- [AWS CDK Documentation](https://docs.aws.amazon.com/cdk/)
-- [Amazon Bedrock AgentCore](https://docs.aws.amazon.com/bedrock/latest/userguide/agents.html)
-- [Model Context Protocol (MCP)](https://spec.modelcontextprotocol.io/)
-- [OpenAI API Documentation](https://platform.openai.com/docs/)
-- [Deploy-Time-Build CDK Construct](https://github.com/aws-samples/deploy-time-build)

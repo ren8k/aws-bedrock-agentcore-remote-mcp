@@ -1,12 +1,12 @@
 # AgentCore Gateway Lambda MCP Stack
 
-このプロジェクトは、AWS CDK を使用して Amazon Bedrock AgentCore Gateway をデプロイし、OpenAI o3 モデルを利用した Web 検索機能を MCP（Model Context Protocol）経由で提供するインフラストラクチャです。
+本プロジェクトは、AWS CDK を使用して Amazon Bedrock AgentCore Gateway と Lambda をデプロイし、OpenAI GPT5 を利用した Web 検索機能を MCP（Model Context Protocol）経由で利用するためのサンプルです。
 
 ## 概要
 
 このスタックは以下の AWS リソースをデプロイします：
 
-- **Lambda Function**: OpenAI o3 による Web 検索を実行するバックエンド
+- **Lambda Function**: OpenAI GPT5 による Web 検索を実行するバックエンド
 - **Lambda Layer**: Python 依存関係（fastapi、openai）
 - **Amazon Cognito**: ユーザープール、リソースサーバー、M2M クライアント認証
 - **Bedrock AgentCore Gateway**: MCP プロトコルによるゲートウェイ
@@ -14,23 +14,10 @@
 
 ## アーキテクチャ
 
-```
-┌─────────────────┐
-│  Bedrock Agent  │
-└────────┬────────┘
-         │ JWT Auth (Cognito)
-         ↓
-┌─────────────────────┐
-│  AgentCore Gateway  │
-│   (MCP Protocol)    │
-└────────┬────────────┘
-         │ IAM Role Auth
-         ↓
-┌─────────────────────┐
-│  Lambda Function    │
-│  (OpenAI o3 + Web)  │
-└─────────────────────┘
-```
+![gateway](../../assets/fig_gateway_2.png)
+
+> [!NOTE]
+> AgentCore Identity は 2025/11/20 時点では CloudFormation でデプロイできないので、boto3 でデプロイします。詳細は[本ディレクトリ](https://github.com/ren8k/aws-bedrock-agentcore-remote-mcp/blob/main/agentcore-identity)を参照して下さい。
 
 ### 認証フロー
 
@@ -42,7 +29,7 @@
 - Node.js 18 以上
 - AWS CLI 設定済み（`aws configure`）
 - AWS CDK CLI（`npm install -g aws-cdk`）
-- OpenAI API キー（o3 アクセス権限）
+- OpenAI API キー（GPT5 アクセス権限）
 - Docker デーモン起動中（Lambda Layer のビルドに必要）
 
 ## セットアップ
@@ -174,20 +161,6 @@ cat .env
 # OPENAI_API_KEY=sk-proj-... が正しく設定されているか確認
 ```
 
-### Cognito 認証エラー
-
-**症状**: `401 Unauthorized` エラー
-
-**解決方法**:
-
-1. トークンの有効期限を確認（デフォルト 1 時間）
-2. スコープが正しいか確認（`gateway:read` と `gateway:write`）
-3. トークンをデコードして検証：
-
-```bash
-echo $TOKEN | cut -d'.' -f2 | base64 -d | jq
-```
-
 ## セキュリティに関する注意事項
 
 1. **Client Secret**: 本番環境では、AWS Secrets Manager などに保存することを推奨します。CloudFormation 出力には含めないでください。
@@ -209,15 +182,3 @@ npx cdk destroy
 - Cognito User Pool は `RemovalPolicy.DESTROY` が設定されているため、スタック削除時に自動的に削除されます。
 - Lambda 関数と Layer も削除されます。
 - S3 バケット（CDK Assets）は手動削除が必要な場合があります。
-
-## 参考資料
-
-- [AWS CDK Documentation](https://docs.aws.amazon.com/cdk/)
-- [Amazon Bedrock AgentCore](https://docs.aws.amazon.com/bedrock/latest/userguide/agents.html)
-- [Model Context Protocol (MCP)](https://spec.modelcontextprotocol.io/)
-- [OpenAI API Documentation](https://platform.openai.com/docs/)
-- [Amazon Cognito OAuth 2.0](https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-pools-app-integration.html)
-
-## ライセンス
-
-This project is licensed under the MIT License.
