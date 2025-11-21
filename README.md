@@ -2,6 +2,10 @@
 
 Amazon Bedrock AgentCore を利用して Remote MCP サーバーを実現する 2 つの方法の検証コード
 
+> [!NOTE]
+> Zenn の記事で利用している検証コードです。是非以下もご覧下さい！
+> https://zenn.dev/aws_japan/articles/001-bedrock-agentcore-remote-mcp
+
 ## 概要
 
 本リポジトリでは、以下の 2 つのアプローチで Remote MCP サーバーを構築する方法を提供します。CDK の実装を公開しております。
@@ -57,7 +61,7 @@ Docker コンテナで MCP サーバーをホストする構成です。開発�
 | レイテンシー       | 約 3.6 秒                          | 約 1.7 秒 (約 2 倍高速)                |
 | コスト             | $0.1058/時間                       | $0.1038/時間 (ほぼ同等)                |
 
-詳細な検証結果は[ブログ記事](https://zenn.dev/aws_japan/articles/bedrock-agentcore-remote-mcp)をご覧ください。
+詳細な検証結果は[ブログ記事](https://zenn.dev/aws_japan/articles/001-bedrock-agentcore-remote-mcp)をご覧ください。
 
 ## 各手法の使い分け
 
@@ -87,6 +91,6 @@ MIT License
 
 ## 参考リンク
 
-- [Zenn ブログ記事](https://zenn.dev/aws_japan/articles/bedrock-agentcore-remote-mcp)
+- [Zenn ブログ記事](https://zenn.dev/aws_japan/articles/001-bedrock-agentcore-remote-mcp)
 - [Model Context Protocol](https://modelcontextprotocol.info/)
 - [Amazon Bedrock AgentCore Documentation](https://docs.aws.amazon.com/bedrock-agentcore/)
