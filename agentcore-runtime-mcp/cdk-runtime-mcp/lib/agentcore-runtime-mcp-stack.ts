@@ -110,6 +110,7 @@ export class AgentcoreRuntimeMcpStack extends cdk.Stack {
     const image = new ContainerImageBuild(this, "Image", {
       directory: path.join(__dirname, "../mcp_server"),
       platform: Platform.LINUX_ARM64,
+      exclude: [".venv", "__pycache__", "*.pyc", ".git"],
     });
 
     // ========================================
